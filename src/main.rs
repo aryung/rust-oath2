@@ -42,6 +42,34 @@ async fn hello3() -> impl Responder {
         .finish()
 }
 
+#[get("/callback")]
+async fn callback() -> impl Responder {
+    HttpResponse::TemporaryRedirect()
+        .header(
+            "Location",
+            "https://03d3-2001-b011-8-5f21-d893-708c-2bbf-3b2d.ngrok-free.app",
+        )
+        .finish()
+}
+
+#[derive(Serialize, Deserialize)]
+struct AuthCode {
+    code: String,
+    state: String,
+}
+
+#[get("/auth")]
+async fn auth(auth_code: web::Query<AuthCode>) -> impl Responder {
+    let resp = format!("code: {}, state: {}", auth_code.code, auth_code.state);
+    // HttpResponse::Ok().body(resp)
+    HttpResponse::TemporaryRedirect()
+        .header(
+            "Location",
+            "https://03d3-2001-b011-8-5f21-d893-708c-2bbf-3b2d.ngrok-free.app",
+        )
+        .finish()
+}
+
 async fn manual_hello() -> impl Responder {
     HttpResponse::Ok().body("Hey there!")
 }
@@ -58,6 +86,8 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .service(hello2)
             .service(hello3)
+            .service(callback)
+            .service(auth)
             .service(echo)
             .service(json_resp)
             .route("/hey", web::get().to(manual_hello))
