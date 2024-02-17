@@ -1,6 +1,8 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
+use std::env;
 
 #[derive(Serialize, Deserialize)]
 struct MyObj {
@@ -33,22 +35,35 @@ async fn hello2(query: web::Query<MyObj>) -> impl Responder {
     HttpResponse::Ok().body(resp)
 }
 
+#[get("/hello3")]
+async fn hello3() -> impl Responder {
+    HttpResponse::TemporaryRedirect()
+        .header("Location", "http://example.com")
+        .finish()
+}
+
 async fn manual_hello() -> impl Responder {
     HttpResponse::Ok().body("Hey there!")
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
+
+    let port = env::var("APP_PORT").unwrap_or_else(|_| "8080".to_string());
+    let server_address = format!("127.0.0.1:{}", port);
+
     HttpServer::new(|| {
         App::new()
             .service(hello)
             .service(hello2)
+            .service(hello3)
             .service(echo)
             .service(json_resp)
             .route("/hey", web::get().to(manual_hello))
     })
     .workers(4)
-    .bind(("127.0.0.1", 8080))?
+    .bind(&server_address)?
     .run()
     .await
 }
