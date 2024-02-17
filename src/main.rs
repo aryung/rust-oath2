@@ -61,7 +61,7 @@ struct AuthCode {
 #[get("/auth")]
 async fn auth(auth_code: web::Query<AuthCode>) -> impl Responder {
     let resp = format!("code: {}, state: {}", auth_code.code, auth_code.state);
-    // HttpResponse::Ok().body(resp)
+    println!("auth: {}", resp);
     HttpResponse::TemporaryRedirect()
         .header(
             "Location",
